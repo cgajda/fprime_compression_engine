@@ -19,8 +19,8 @@ register_fprime_library(
         "${CMAKE_CURRENT_LIST_DIR}/CompEngine.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/CompEngine.cpp"
-#   DEPENDS
-#       MyPackage_MyOtherModule
+    DEPENDS
+        compress_Lib_CompressionLib
 )
 
 ### Unit Tests ###
