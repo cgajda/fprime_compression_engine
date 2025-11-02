@@ -8,7 +8,7 @@ module COMP {
     }
 
     @ Component for compressing files/folders in the file system
-    passive component CompEngine {
+    active component CompEngine {
 
         ##############################################################################
         #### Component-specific commands, telemetry, events, and parameters       ####
@@ -16,20 +16,20 @@ module COMP {
 
         @ Compress a single file at 'path' using the specified algorithm.
         @ algo: 0=HUFFMAN, 1=LZSS, 2=DCT
-        sync command COMPRESS_FILE(
+        async command COMPRESS_FILE(
             algo: Algo,
             path: string size 128
         ) opcode 0x00
 
         @ Compress an entire folder/directory. Exact behavior is up to the impl
         @ (e.g. zip-then-compress, or compress each file).
-        sync command COMPRESS_FOLDER(
+        async command COMPRESS_FOLDER(
             algo: Algo,
             folder: string size 128
         ) opcode 0x01
 
         @ Set the algorithm that will be used when a request doesn’t specify one.
-        sync command SET_DEFAULT_ALGO(
+        async command SET_DEFAULT_ALGO(
             algo: Algo
         ) opcode 0x02
 
