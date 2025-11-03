@@ -2,6 +2,7 @@
 
 // for Fw::COMMAND_OK, Fw::COMMAND_VALIDATION_ERROR, ...
 #include "Fw/FPrimeBasicTypes.hpp"
+#include "compress/Lib/CompressionLib/CompressionLib.hpp"
 
 namespace COMP {
 
@@ -48,12 +49,18 @@ namespace COMP {
       U32& bytesIn,
       U32& bytesOut
   ) {
-    (void)algo;
-    (void)path;
-    // TODO: real Huffman/LZSS/DCT here
-    bytesIn  = 1024U;
-    bytesOut = 512U;
-    return 0U;
+    // F´ enum (COMP::Algo) -> uint8_t -> library enum
+    auto libAlgo = static_cast<CompressionLib::Algorithm>(
+        static_cast<std::uint8_t>(algo)
+    );
+
+    CompressionLib::Result r =
+        CompressionLib::compressFile(libAlgo, path.toChar());
+
+    bytesIn  = r.bytesIn;
+    bytesOut = r.bytesOut;
+
+    return (r.error == 0) ? 0U : static_cast<U32>(-r.error);
   }
 
   U32 CompEngine::doFolderCompression(
@@ -62,12 +69,17 @@ namespace COMP {
       U32& bytesIn,
       U32& bytesOut
   ) {
-    (void)algo;
-    (void)folder;
-    // TODO: real folder strategy
-    bytesIn  = 4096U;
-    bytesOut = 1024U;
-    return 0U;
+    auto libAlgo = static_cast<CompressionLib::Algorithm>(
+        static_cast<std::uint8_t>(algo)
+    );
+
+    CompressionLib::Result r =
+        CompressionLib::compressFolder(libAlgo, folder.toChar());
+
+    bytesIn  = r.bytesIn;
+    bytesOut = r.bytesOut;
+
+    return (r.error == 0) ? 0U : static_cast<U32>(-r.error);
   }
 
   // ------------------------------------------------------------------
