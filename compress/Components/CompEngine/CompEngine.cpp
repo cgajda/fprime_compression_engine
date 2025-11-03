@@ -1,8 +1,7 @@
 #include "compress/Components/CompEngine/CompEngine.hpp"
-
-// for Fw::COMMAND_OK, Fw::COMMAND_VALIDATION_ERROR, ...
-#include "Fw/FPrimeBasicTypes.hpp"
 #include "compress/Lib/CompressionLib/CompressionLib.hpp"
+
+#include "Fw/FPrimeBasicTypes.hpp"
 
 namespace COMP {
 
@@ -12,20 +11,12 @@ namespace COMP {
 
   CompEngine::CompEngine(const char* compName)
   : CompEngineComponentBase(compName)
-  , m_runtimeDefaultAlgo(COMP::Algo::HUFFMAN)   // sensible default
+  , m_runtimeDefaultAlgo(COMP::Algo::HUFFMAN)
   {
   }
 
   void CompEngine::init(FwIndexType queueDepth, FwIndexType msgSize) {
-    // active base expects both
     CompEngineComponentBase::init(queueDepth, msgSize);
-
-    // if you want to sync to the *parameter* value at startup, you can do:
-    // Fw::ParamValid valid;
-    // COMP::Algo prmVal = this->paramGet_DefaultAlgo(valid);
-    // if (valid == Fw::ParamValid::VALID) {
-    //   this->m_runtimeDefaultAlgo = prmVal;
-    // }
   }
 
   // ------------------------------------------------------------------
@@ -45,11 +36,11 @@ namespace COMP {
 
   U32 CompEngine::doFileCompression(
       COMP::Algo algo,
-      const Fw::StringBase& path,
+      const Fw::CmdStringArg& path,
       U32& bytesIn,
       U32& bytesOut
   ) {
-    // F´ enum (COMP::Algo) -> uint8_t -> library enum
+    // F´ enum → u8 → lib enum
     auto libAlgo = static_cast<CompressionLib::Algorithm>(
         static_cast<std::uint8_t>(algo)
     );
@@ -65,7 +56,7 @@ namespace COMP {
 
   U32 CompEngine::doFolderCompression(
       COMP::Algo algo,
-      const Fw::StringBase& folder,
+      const Fw::CmdStringArg& folder,
       U32& bytesIn,
       U32& bytesOut
   ) {
@@ -90,16 +81,14 @@ namespace COMP {
       FwOpcodeType opCode,
       U32 cmdSeq,
       COMP::Algo algo,
-      const Fw::StringBase& path
+      const Fw::CmdStringArg& path
   ) {
-    // if caller passed a garbage enum, reject
     if (!this->algoIsValid(algo)) {
       this->log_WARNING_LO_InvalidAlgorithm(static_cast<U8>(algo));
       this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::FORMAT_ERROR);
       return;
     }
 
-    // log start
     this->log_ACTIVITY_HI_CompressionRequested(algo, path);
 
     U32 bytesIn  = 0U;
@@ -131,11 +120,11 @@ namespace COMP {
       FwOpcodeType opCode,
       U32 cmdSeq,
       COMP::Algo algo,
-      const Fw::StringBase& folder
+      const Fw::CmdStringArg& folder
   ) {
     if (!this->algoIsValid(algo)) {
       this->log_WARNING_LO_InvalidAlgorithm(static_cast<U8>(algo));
-      this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::INVALID_OPCODE);
+      this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::FORMAT_ERROR);
       return;
     }
 
@@ -177,10 +166,7 @@ namespace COMP {
       return;
     }
 
-    // keep a runtime copy; the autocoded param copy is private to the base
     this->m_runtimeDefaultAlgo = algo;
-
-    // reflect in tlm immediately
     this->tlmWrite_LastAlgo(algo);
 
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
@@ -191,7 +177,7 @@ namespace COMP {
       U32 cmdSeq,
       U32 key
   ) {
-    (void) key;
+    (void)key;
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
   }
 
